@@ -1,0 +1,334 @@
+/* ============================================================
+   VAT — Estilos
+   Paleta: violeta profundo sobre fondo casi negro.
+   Tipografía: Space Grotesk (títulos) + Inter (cuerpo).
+   ============================================================ */
+
+:root {
+    /* Color */
+    --bg:            #0D0716;
+    --panel:         #1B1029;
+    --panel-borde:   #33204E;
+    --texto:         #ECE6F7;
+    --texto-tenue:   #A08FC2;
+    --violeta:       #8B5CF6;
+    --violeta-claro: #C9B8FF;
+    --violeta-profundo: #5B2C8C;
+
+    /* La barra grande de humano/IA usa dos colores semánticos propios,
+       fuera de la familia violeta, para que se distinga a simple vista
+       del resto de la interfaz: es el único dato calibrado del sistema. */
+    --color-humano: #34D399;
+    --color-ia:     #F87171;
+
+    /* Las tres barras de Claude/ChatGPT/Gemini comparten la familia
+       violeta y solo cambian de tono entre sí — a propósito: comunican
+       visualmente que son una estimación relacionada, no tres señales
+       independientes y certeras. */
+    --claude:  #C9B8FF;
+    --chatgpt: #A78BFA;
+    --gemini:  #8B5CF6;
+
+    --radio: 10px;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+
+body {
+    margin: 0;
+    padding: 40px 20px calc(40px + env(safe-area-inset-bottom, 0px));
+    padding-top: calc(40px + env(safe-area-inset-top, 0px));
+    background: radial-gradient(circle at 50% -10%, #241638 0%, var(--bg) 55%);
+    color: var(--texto);
+    font-family: 'Inter', -apple-system, sans-serif;
+    line-height: 1.5;
+}
+
+@media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+        /* El sistema está pensado como tema oscuro fijo (parte de la
+           identidad de marca ya definida), así que no se invierte en
+           modo claro — se mantiene el fondo oscuro deliberadamente. */
+    }
+}
+
+/* --- Header --- */
+
+.marca {
+    max-width: 1000px;
+    margin: 0 auto 36px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.marca-icono svg { width: 38px; height: 38px; display: block; }
+
+.marca-texto h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+
+.marca-texto p {
+    margin: 2px 0 0;
+    font-size: 0.85rem;
+    color: var(--texto-tenue);
+}
+
+/* --- Workspace dividido --- */
+
+.workspace {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+@media (max-width: 860px) {
+    .workspace { grid-template-columns: 1fr; }
+}
+
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--panel-borde);
+    border-radius: var(--radio);
+    padding: 24px;
+}
+
+label {
+    display: block;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+textarea {
+    width: 100%;
+    min-height: 220px;
+    background: #14092280;
+    border: 1px solid var(--panel-borde);
+    border-radius: 8px;
+    color: var(--texto);
+    padding: 14px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    line-height: 1.6;
+    resize: vertical;
+}
+
+textarea:focus-visible {
+    outline: 2px solid var(--violeta);
+    outline-offset: 1px;
+}
+
+textarea[readonly] { background: #14092250; color: var(--texto); }
+
+.contador {
+    text-align: right;
+    font-size: 0.78rem;
+    color: var(--texto-tenue);
+    margin-top: 6px;
+}
+
+/* --- Botones --- */
+
+.acciones {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.btn-primario { background: var(--violeta); color: #fff; }
+.btn-primario:hover { background: #7C4DEF; }
+
+.btn-secundario {
+    background: transparent;
+    border: 1px solid var(--panel-borde);
+    color: var(--texto);
+}
+.btn-secundario:hover { border-color: var(--violeta); background: #ffffff08; }
+
+.btn-chico { padding: 8px 14px; font-size: 0.82rem; margin-top: 12px; }
+
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.btn-cargando { display: inline-flex; align-items: center; gap: 6px; }
+.btn-cargando::before {
+    content: "";
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    animation: girar 0.7s linear infinite;
+}
+
+@keyframes girar { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+    .btn-cargando::before { animation: none; }
+}
+
+.mensaje-error {
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: #F8717122;
+    border: 1px solid #F87171;
+    border-radius: 8px;
+    color: #FFC7C7;
+    font-size: 0.85rem;
+}
+
+/* --- Panel de resultados --- */
+
+.estado-vacio {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 220px;
+    color: var(--texto-tenue);
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+/* Único momento de animación orquestado del sistema: cuando el resultado
+   llega, el panel entero aparece con una transición suave (no hay más
+   animaciones de entrada dispersas por el resto de la interfaz). */
+.resultado-deteccion, .resultado-humanizado {
+    animation: revelar 0.5s ease forwards;
+}
+
+@keyframes revelar {
+    from { opacity: 0; transform: translateY(8px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .resultado-deteccion, .resultado-humanizado { animation: none; }
+}
+
+.resultado-humanizado { margin-top: 24px; }
+.resultado-humanizado h2,
+.desglose h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0 0 12px;
+}
+
+/* --- Medidor circular (anillo de progreso) --- */
+
+.medidor-principal {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    margin: 4px auto 6px;
+}
+
+.medidor-anillo { width: 100%; height: 100%; transform: rotate(-90deg); }
+
+.medidor-fondo {
+    fill: none;
+    stroke: #ffffff14;
+    stroke-width: 10;
+}
+
+.medidor-progreso {
+    fill: none;
+    stroke: var(--color-ia);
+    stroke-width: 10;
+    stroke-linecap: round;
+    /* circunferencia = 2 * pi * 52 ≈ 326.7 */
+    stroke-dasharray: 326.7;
+    stroke-dashoffset: 326.7; /* arranca vacío; JS calcula el offset real */
+    transition: stroke-dashoffset 0.8s cubic-bezier(0.22, 1, 0.36, 1), stroke 0.4s ease;
+}
+
+.medidor-numero {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.9rem;
+}
+
+.medidor-signo { font-size: 1.1rem; margin-left: 2px; color: var(--texto-tenue); }
+
+.medidor-etiqueta {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--texto-tenue);
+    margin: 0 0 26px;
+}
+
+/* --- Barras de desglose --- */
+
+.desglose { margin-bottom: 18px; }
+
+.barra-fila { margin-bottom: 12px; }
+
+.barra-encabezado {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+}
+
+.barra-pista {
+    background: #ffffff10;
+    border-radius: 6px;
+    height: 9px;
+    overflow: hidden;
+}
+
+.barra-relleno {
+    height: 100%;
+    width: 0%;
+    border-radius: 6px;
+    transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.relleno-claude  { background: var(--claude); }
+.relleno-chatgpt { background: var(--chatgpt); }
+.relleno-gemini  { background: var(--gemini); }
+
+.aviso-deteccion {
+    font-size: 0.78rem;
+    color: var(--texto-tenue);
+    line-height: 1.5;
+    margin: 0;
+    padding-top: 12px;
+    border-top: 1px solid var(--panel-borde);
+}
+
+/* --- Pie --- */
+
+.pie {
+    max-width: 1000px;
+    margin: 32px auto 0;
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--texto-tenue);
+}

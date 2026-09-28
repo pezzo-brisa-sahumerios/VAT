@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VAT — Virus, AI, Test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="marca">
+    <div class="marca-icono" aria-hidden="true">
+        <svg viewBox="0 0 600 350" xmlns="http://www.w3.org/2000/svg">
+            <path d="M300 350 C280 300 220 260 150 230 C90 205 40 150 10 60 C90 90 160 130 220 190 C240 130 270 90 300 60 C330 90 360 130 380 190 C440 130 510 90 590 60 C560 150 510 205 450 230 C380 260 320 300 300 350 Z" fill="url(#gradAla)"/>
+            <path d="M280 90 L270 60 L290 75 Z" fill="#0D0716"/>
+            <path d="M320 90 L330 60 L310 75 Z" fill="#0D0716"/>
+            <defs>
+                <linearGradient id="gradAla" x1="0" y1="0" x2="600" y2="350" gradientUnits="userSpaceOnUse">
+                    <stop offset="0" stop-color="#8B5CF6"/>
+                    <stop offset="1" stop-color="#5B2C8C"/>
+                </linearGradient>
+            </defs>
+        </svg>
+    </div>
+    <div class="marca-texto">
+        <h1>VAT</h1>
+        <p>Virus · AI · Test — Módulo de Texto</p>
+    </div>
+</header>
+
+<main class="workspace">
+
+    <!-- Panel izquierdo: entrada de texto y acciones -->
+    <section class="panel panel-entrada" aria-label="Entrada de texto">
+        <label for="texto-entrada">Pegá el texto a analizar</label>
+        <textarea id="texto-entrada" placeholder="Pegá acá el artículo, correo o mensaje sospechoso..."></textarea>
+
+        <div class="contador">
+            <span id="contador-caracteres">0</span> caracteres
+        </div>
+
+        <div class="acciones">
+            <button id="btn-analizar" class="btn btn-primario">
+                <span class="btn-texto">Analizar texto</span>
+                <span class="btn-cargando" hidden>Analizando…</span>
+            </button>
+            <button id="btn-humanizar" class="btn btn-secundario">
+                <span class="btn-texto">Humanizar contenido</span>
+                <span class="btn-cargando" hidden>Reescribiendo…</span>
+            </button>
+        </div>
+
+        <p id="mensaje-error" class="mensaje-error" role="alert" hidden></p>
+    </section>
+
+    <!-- Panel derecho: resultados -->
+    <section class="panel panel-resultados" aria-label="Resultados">
+
+        <div id="estado-vacio" class="estado-vacio">
+            <p>Los resultados del análisis van a aparecer acá.</p>
+        </div>
+
+        <div id="resultado-deteccion" class="resultado-deteccion" hidden>
+
+            <div class="medidor-principal">
+                <svg class="medidor-anillo" viewBox="0 0 120 120" aria-hidden="true">
+                    <circle class="medidor-fondo" cx="60" cy="60" r="52"/>
+                    <circle id="medidor-progreso" class="medidor-progreso" cx="60" cy="60" r="52"/>
+                </svg>
+                <div class="medidor-numero">
+                    <span id="medidor-valor">0</span><span class="medidor-signo">%</span>
+                </div>
+            </div>
+            <p id="medidor-etiqueta" class="medidor-etiqueta">probabilidad de ser generado por IA</p>
+
+            <div class="desglose">
+                <h2>Desglose por modelo</h2>
+                <div class="barra-fila">
+                    <div class="barra-encabezado"><span>Claude</span><span id="valor-claude">0%</span></div>
+                    <div class="barra-pista"><div id="barra-claude" class="barra-relleno relleno-claude"></div></div>
+                </div>
+                <div class="barra-fila">
+                    <div class="barra-encabezado"><span>ChatGPT</span><span id="valor-chatgpt">0%</span></div>
+                    <div class="barra-pista"><div id="barra-chatgpt" class="barra-relleno relleno-chatgpt"></div></div>
+                </div>
+                <div class="barra-fila">
+                    <div class="barra-encabezado"><span>Gemini</span><span id="valor-gemini">0%</span></div>
+                    <div class="barra-pista"><div id="barra-gemini" class="barra-relleno relleno-gemini"></div></div>
+                </div>
+            </div>
+
+            <p id="aviso-deteccion" class="aviso-deteccion"></p>
+        </div>
+
+        <div id="resultado-humanizado" class="resultado-humanizado" hidden>
+            <h2>Texto humanizado</h2>
+            <textarea id="texto-humanizado" readonly></textarea>
+            <button id="btn-copiar" class="btn btn-secundario btn-chico">Copiar</button>
+        </div>
+
+    </section>
+
+</main>
+
+<footer class="pie">
+    <p>Herramienta educativa. Los resultados son estimaciones, no certezas absolutas.</p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

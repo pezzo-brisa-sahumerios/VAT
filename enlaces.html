@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VAT — Detector de links</title>
+<link rel="stylesheet" href="style.css">
+<!-- Si en index.html ya cargás las fuentes de Google Fonts, copiá acá el mismo <link> -->
+</head>
+<body>
+
+<header class="barra-nav">
+  <div class="barra-nav-interior">
+    <a class="nav-marca" href="index.html">VAT</a>
+    <nav class="nav-enlaces">
+      <a class="nav-enlace" href="index.html">📝 Detector de texto</a>
+      <a class="nav-enlace" href="enlaces.html" aria-current="page">🔗 Detector de links</a>
+    </nav>
+  </div>
+</header>
+
+<main class="panel panel-unico">
+  <label for="url">Pegá un link para analizar</label>
+  <input id="url" type="text" placeholder="https://ejemplo.com/..." autocomplete="off">
+  <p class="contador" style="text-align:left">Se analiza sin abrirlo.</p>
+
+  <div class="acciones">
+    <button id="btn" class="btn btn-primario">Analizar link</button>
+  </div>
+
+  <div id="error" class="mensaje-error" hidden></div>
+  <div id="resultado"></div>
+</main>
+
+<p class="pie">Ningún detector es perfecto: un sitio nuevo puede no estar en las listas todavía.</p>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+const TITULOS = {
+  seguro: '🟢 No se detectaron amenazas',
+  sospechoso: '🟡 Sospechoso: tené cuidado',
+  peligroso: '🔴 Peligroso: no lo abras'
+};
+
+async function analizar() {
+  const url = $('url').value.trim();
+  if (!url) return;
+
+  $('error').hidden = true;
+  $('resultado').innerHTML = '';
+  $('btn').disabled = true;
+  $('btn').classList.add('btn-cargando');
+  $('btn').textContent = 'Analizando...';
+
+  try {
+    const resp = await fetch('link_detector.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url })
+    });
+    const d = await resp.json();
+    if (!d.ok) throw new Error(d.error);
+
+    const caja = document.createElement('div');
+    caja.className = 'veredicto veredicto-' + d.veredicto;
+
+    const h2 = document.createElement('h2');
+    h2.textContent = TITULOS[d.veredicto];
+    caja.appendChild(h2);
+
+    const lineas = [];
+    if (d.virustotal) {
+      lineas.push('VirusTotal: ' + d.virustotal.malicious + ' motores lo marcan malicioso, ' +
+        d.virustotal.suspicious + ' sospechoso, ' + d.virustotal.harmless + ' inofensivo.');
+    } else {
+      lineas.push('VirusTotal no respondió o no está configurado: resultado solo por análisis del texto del link.');
+    }
+    lineas.push('Riesgo según características del link: ' + d.heuristica.puntos + '/100.');
+    d.heuristica.motivos.forEach(m => lineas.push('• ' + m));
+
+    lineas.forEach(t => {
+      const p = document.createElement('p');
+      p.textContent = t;   // textContent: nada de lo que venga de afuera se interpreta como HTML
+      caja.appendChild(p);
+    });
+
+    $('resultado').appendChild(caja);
+  } catch (e) {
+    $('error').textContent = 'Error: ' + e.message;
+    $('error').hidden = false;
+  } finally {
+    $('btn').disabled = false;
+    $('btn').classList.remove('btn-cargando');
+    $('btn').textContent = 'Analizar link';
+  }
+}
+
+$('btn').addEventListener('click', analizar);
+$('url').addEventListener('keydown', (e) => { if (e.key === 'Enter') analizar(); });
+</script>
+</body>
+</html>

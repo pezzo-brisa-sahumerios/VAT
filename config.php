@@ -111,3 +111,5 @@ define('HF_MAX_RETRIES', 3);
  * factura de uso de la API crezca sin control.
  */
 define('MAX_INPUT_CHARS', 8000);
+
+define('VT_API_KEY', '588f702d90469e4b649c32d602d482c15002ef49ac96cb36411d2b98bd776f97'); // gratis en virustotal.com (cuenta → API key)

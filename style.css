@@ -332,3 +332,88 @@ textarea[readonly] { background: #14092250; color: var(--texto); }
     font-size: 0.78rem;
     color: var(--texto-tenue);
 }
+/* --- Barra de navegación superior --- */
+
+.barra-nav {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    /* Los márgenes negativos anulan el padding del body para que la barra
+       llegue a los bordes de la pantalla. */
+    margin: calc(-40px - env(safe-area-inset-top, 0px)) -20px 32px;
+    padding: calc(12px + env(safe-area-inset-top, 0px)) 20px 12px;
+    background: rgba(13, 7, 22, 0.88);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--panel-borde);
+}
+
+.barra-nav-interior {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.nav-marca {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: var(--texto);
+    text-decoration: none;
+}
+
+.nav-enlaces { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.nav-enlace {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    color: var(--texto-tenue);
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 600;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.nav-enlace:hover { color: var(--texto); background: #ffffff08; }
+
+.nav-enlace[aria-current="page"] { background: var(--violeta); color: #fff; }
+
+.nav-enlace:focus-visible { outline: 2px solid var(--violeta-claro); outline-offset: 2px; }
+
+/* --- Detector de links --- */
+
+input[type="text"] {
+    width: 100%;
+    background: #14092280;
+    border: 1px solid var(--panel-borde);
+    border-radius: 8px;
+    color: var(--texto);
+    padding: 14px;
+    font-size: 0.95rem;
+    font-family: inherit;
+}
+
+input[type="text"]:focus-visible { outline: 2px solid var(--violeta); outline-offset: 1px; }
+
+.panel-unico { max-width: 640px; margin: 0 auto; }
+
+.veredicto {
+    margin-top: 20px;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid;
+    animation: revelar 0.5s ease forwards;
+}
+
+.veredicto h2 { font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; margin: 0 0 10px; }
+.veredicto p { margin: 0 0 8px; font-size: 0.88rem; }
+
+.veredicto-seguro     { background: #34D39914; border-color: var(--color-humano); }
+.veredicto-sospechoso { background: #FBBF2414; border-color: #FBBF24; }
+.veredicto-peligroso  { background: #F8717118; border-color: var(--color-ia); }
+
+@media (prefers-reduced-motion: reduce) { .veredicto { animation: none; } }

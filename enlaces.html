@@ -1,26 +1,40 @@
 <!DOCTYPE html>
+<!-- Avisa al navegador que es HTML5 -->
 <html lang="es">
+<!-- lang="es": idioma de la página (ayuda a lectores de pantalla y traductores) -->
 <head>
+<!-- Codificación de caracteres: sin esto, tildes, ñ y emojis se ven mal -->
 <meta charset="UTF-8">
+
+<!-- Adapta la página al celular. viewport-fit=cover usa toda la pantalla -->
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+<!-- Título que aparece en la pestaña del navegador -->
 <title>VAT — Detector de links</title>
+
+<!-- Carga tu CSS: de ahí salen los colores violeta, botones, paneles, etc. -->
 <link rel="stylesheet" href="style.css">
-<!-- Si en index.html ya cargás las fuentes de Google Fonts, copiá acá el mismo <link> -->
 </head>
 <body>
 
+<!-- ===== BARRA DE NAVEGACIÓN SUPERIOR (igual en las dos páginas) ===== -->
 <header class="barra-nav">
   <div class="barra-nav-interior">
     <a class="nav-marca" href="index.html">VAT</a>
     <nav class="nav-enlaces">
       <a class="nav-enlace" href="index.html">📝 Detector de texto</a>
+      <!-- aria-current="page" marca la página actual: el CSS la pinta de violeta -->
       <a class="nav-enlace" href="enlaces.html" aria-current="page">🔗 Detector de links</a>
     </nav>
   </div>
 </header>
 
+<!-- ===== CONTENIDO PRINCIPAL ===== -->
 <main class="panel panel-unico">
+  <!-- for="url" conecta la etiqueta con el input: al tocar el texto se enfoca el campo -->
   <label for="url">Pegá un link para analizar</label>
+
+  <!-- Campo donde se pega el link. autocomplete="off" evita sugerencias del navegador -->
   <input id="url" type="text" placeholder="https://ejemplo.com/..." autocomplete="off">
   <p class="contador" style="text-align:left">Se analiza sin abrirlo.</p>
 
@@ -28,75 +42,121 @@
     <button id="btn" class="btn btn-primario">Analizar link</button>
   </div>
 
+  <!-- Caja de error: empieza oculta (hidden) y se muestra solo si algo falla -->
   <div id="error" class="mensaje-error" hidden></div>
+
+  <!-- Acá el JavaScript inserta el resultado (semáforo + detalles) -->
   <div id="resultado"></div>
 </main>
 
 <p class="pie">Ningún detector es perfecto: un sitio nuevo puede no estar en las listas todavía.</p>
 
+<!-- ===== JAVASCRIPT ===== -->
 <script>
+// Atajo: $('x') en vez de document.getElementById('x')
 const $ = (id) => document.getElementById(id);
 
+// Traduce el veredicto que manda el PHP al título que ve el usuario
 const TITULOS = {
   seguro: '🟢 No se detectaron amenazas',
   sospechoso: '🟡 Sospechoso: tené cuidado',
   peligroso: '🔴 Peligroso: no lo abras'
 };
 
+// "async" permite usar "await": esperar al servidor sin congelar la página
 async function analizar() {
-  const url = $('url').value.trim();
-  if (!url) return;
 
-  $('error').hidden = true;
-  $('resultado').innerHTML = '';
-  $('btn').disabled = true;
-  $('btn').classList.add('btn-cargando');
+  // PASO 1: leer lo que escribió el usuario (trim() saca espacios sobrantes)
+  const url = $('url').value.trim();
+  if (!url) return; // si está vacío, no hace nada
+
+  // PASO 2: poner la pantalla en "modo cargando"
+  $('error').hidden = true;               // oculta un error anterior
+  $('resultado').innerHTML = '';          // borra el resultado anterior
+  $('btn').disabled = true;               // bloquea el botón (evita clics repetidos
+                                          // que gastarían tu cuota de VirusTotal)
+  $('btn').classList.add('btn-cargando'); // el CSS agrega un circulito girando
   $('btn').textContent = 'Analizando...';
 
+  // try/catch/finally: si algo falla en "try" salta a "catch";
+  // "finally" se ejecuta SIEMPRE, salga bien o mal
   try {
+
+    // PASO 3: enviar el link al servidor (link_detector.php)
     const resp = await fetch('link_detector.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url })
+      method: 'POST',                                  // el PHP solo acepta POST
+      headers: { 'Content-Type': 'application/json' }, // avisa que el cuerpo es JSON
+      body: JSON.stringify({ url })                    // convierte {url:"..."} a texto JSON
     });
+
+    // PASO 4: convertir la respuesta (texto JSON) en un objeto de JavaScript
     const d = await resp.json();
+
+    // Si el PHP respondió {ok:false, error:"..."}, lanzamos un error
+    // que atrapa el "catch" de más abajo
     if (!d.ok) throw new Error(d.error);
 
+    // PASO 5: construir la caja de resultado.
+    // Se arma con createElement en vez de escribir HTML como texto,
+    // para que nada que venga de afuera se interprete como código.
     const caja = document.createElement('div');
+    // La clase depende del veredicto ("veredicto veredicto-seguro", etc.)
+    // y el CSS le da su color: verde, amarillo o rojo
     caja.className = 'veredicto veredicto-' + d.veredicto;
 
+    // Título grande con el semáforo
     const h2 = document.createElement('h2');
     h2.textContent = TITULOS[d.veredicto];
     caja.appendChild(h2);
 
+    // PASO 6: armar la lista de líneas de detalle
     const lineas = [];
+
     if (d.virustotal) {
+      // VirusTotal respondió: mostramos cuántos motores opinaron qué
       lineas.push('VirusTotal: ' + d.virustotal.malicious + ' motores lo marcan malicioso, ' +
         d.virustotal.suspicious + ' sospechoso, ' + d.virustotal.harmless + ' inofensivo.');
     } else {
+      // d.virustotal es null: sin clave, sin respuesta o límite excedido
       lineas.push('VirusTotal no respondió o no está configurado: resultado solo por análisis del texto del link.');
     }
+
+    // Puntaje de tus reglas propias (0 a 100)
     lineas.push('Riesgo según características del link: ' + d.heuristica.puntos + '/100.');
+
+    // Cada motivo detectado (IP en vez de dominio, "@", etc.) es una línea con viñeta
     d.heuristica.motivos.forEach(m => lineas.push('• ' + m));
 
+    // PASO 7: convertir cada línea en un <p> y meterlo en la caja
     lineas.forEach(t => {
       const p = document.createElement('p');
-      p.textContent = t;   // textContent: nada de lo que venga de afuera se interpreta como HTML
+      // textContent (no innerHTML): si el texto tuviera HTML malicioso,
+      // se mostraría como texto y no se ejecutaría (evita ataques XSS)
+      p.textContent = t;
       caja.appendChild(p);
     });
 
+    // PASO 8: mostrar la caja terminada en la página
     $('resultado').appendChild(caja);
+
   } catch (e) {
+    // Algo falló (servidor caído, JSON inválido, error del PHP...):
+    // se muestra el mensaje en la caja roja
     $('error').textContent = 'Error: ' + e.message;
     $('error').hidden = false;
+
   } finally {
+    // PASO 9: el botón vuelve a la normalidad, haya salido bien o mal
     $('btn').disabled = false;
     $('btn').classList.remove('btn-cargando');
     $('btn').textContent = 'Analizar link';
   }
 }
 
+// ===== EVENTOS: cuándo se ejecuta analizar() =====
+// Al hacer clic en el botón
 $('btn').addEventListener('click', analizar);
+// O al apretar Enter mientras se escribe en el campo
 $('url').addEventListener('keydown', (e) => { if (e.key === 'Enter') analizar(); });
 </script>
 </body>

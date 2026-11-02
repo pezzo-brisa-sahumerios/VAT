@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<!-- =============================================================================
+  VAT · Detector Forense de Texto IA — página principal
+  -----------------------------------------------------------------------------
+  Estructura: cabecera de marca → workspace de dos paneles (entrada / resultados)
+  → informe forense detallado → pie con metodología.
+  Si este archivo no existiera, no habría interfaz: el servidor devolvería 404
+  o un listado de carpetas al entrar al sitio.
+============================================================================== -->
+<html lang="es">
+<head>
+  <!-- UTF-8 obligatorio: sin él, tildes y ñ se verían como "Ã±" y el texto pegado se corrompería. -->
+  <meta charset="utf-8">
+  <!-- Viewport: sin esta etiqueta el celular mostraría la página "de escritorio" diminuta y habría que hacer zoom. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- Color de la barra del navegador móvil en el tono violeta de la marca. -->
+  <meta name="theme-color" content="#1a0b2e">
+  <meta name="description" content="VAT: detector forense de texto generado por IA (ChatGPT, Claude, Gemini, Llama…). 100% local, sin APIs.">
+  <!-- CSP: sólo permite recursos del propio sitio. Sin ella, un script inyectado podría enviar los textos del usuario a terceros. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
+  <title>VAT · Detector Forense de Texto IA</title>
+  <!-- Manifiesto PWA: permite "Agregar a pantalla de inicio" en el celular. Sin él, sólo funciona como página web común. -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/img/icono.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/estilos.css">
+</head>
+<body>
+  <!-- Enlace de salto para teclado/lectores de pantalla: sin él, hay que tabular por toda la cabecera para llegar al análisis. -->
+  <a class="saltar" href="#entrada">Ir al analizador</a>
+
+  <!-- ===================== CABECERA DE MARCA ===================== -->
+  <header class="cabecera">
+    <div class="contenedor cabecera__fila">
+      <div class="marca">
+        <img src="assets/img/icono.svg" alt="" width="40" height="40">
+        <div>
+          <h1 class="marca__nombre">VAT</h1>
+          <p class="marca__lema">Detector forense de texto IA</p>
+        </div>
+      </div>
+      <!-- Indicador del motor activo (PHP en servidor o JavaScript local). Sin él, el usuario no sabría dónde se procesa su texto. -->
+      <span id="estadoMotor" class="insignia" role="status">Conectando…</span>
+    </div>
+  </header>
+
+  <main class="contenedor">
+    <!-- ===================== WORKSPACE DE DOS PANELES ===================== -->
+    <section class="workspace" aria-label="Espacio de trabajo">
+
+      <!-- Panel izquierdo: entrada de texto -->
+      <div class="panel panel--entrada">
+        <div class="panel__cabecera">
+          <h2>Texto a analizar</h2>
+          <!-- aria-live: el lector de pantalla anuncia el conteo al escribir. -->
+          <span id="contador" class="contador" aria-live="polite">0 palabras</span>
+        </div>
+        <label for="entrada" class="solo-lector">Pegá aquí el texto a analizar</label>
+        <!-- maxlength coincide con el límite del servidor: sin él, el usuario podría pegar más y recibir un error tardío. -->
+        <textarea id="entrada" class="entrada" maxlength="60000" spellcheck="false"
+          placeholder="Pegá aquí el texto (ideal: 150 palabras o más). VAT analiza la estructura lingüística, calcula la probabilidad calibrada de IA, estima el modelo y explica cada decisión."></textarea>
+        <div class="acciones">
+          <!-- type="button" evita que el botón envíe un formulario y recargue la página perdiendo el texto. -->
+          <button id="btnAnalizar" type="button" class="boton boton--primario">
+            <span class="boton__texto">Analizar</span>
+            <span class="giro" aria-hidden="true"></span>
+          </button>
+          <button id="btnLimpiar" type="button" class="boton boton--fantasma" aria-label="Borrar el texto">Limpiar</button>
+        </div>
+        <p class="aviso">Privado: Tu texto no sale de este sitio: no se usan APIs externas ni se guarda nada.</p>
+      </div>
+
+      <!-- Panel derecho: resultados resumidos -->
+      <div class="panel panel--resultados" aria-live="polite">
+        <!-- Estado vacío inicial: sin él, el panel derecho aparecería en blanco y confuso. -->
+        <div id="vacio" class="vacio">
+          <div class="vacio__icono" aria-hidden="true">◈</div>
+          <p>Los resultados aparecerán aquí.</p>
+          <p class="tenue">Probabilidad calibrada · Veredicto conservador · Modelo probable · Evidencias</p>
+        </div>
+
+        <div id="resultado" class="resultado" hidden>
+          <div id="veredicto" class="veredicto">
+            <p class="veredicto__etiqueta">Veredicto</p>
+            <h2 id="veredictoTitulo" class="veredicto__titulo">—</h2>
+            <p id="veredictoDetalle" class="veredicto__detalle"></p>
+          </div>
+
+          <!-- Barras principales: el ancho se anima con transición CSS desde 0. -->
+          <div class="medidor">
+            <div class="medidor__fila"><span>Probabilidad IA</span><strong id="valIA">0%</strong></div>
+            <div class="barra"><div id="barIA" class="barra__relleno barra__relleno--ia"></div>
+              <!-- Marcas de umbral: muestran visualmente dónde empieza "IA" y dónde "humano". -->
+              <span id="marcaIA" class="barra__marca" title="Umbral IA"></span>
+              <span id="marcaHum" class="barra__marca barra__marca--hum" title="Umbral humano"></span>
+            </div>
+            <div class="medidor__fila"><span>Probabilidad humano</span><strong id="valHum">0%</strong></div>
+            <div class="barra"><div id="barHum" class="barra__relleno barra__relleno--hum"></div></div>
+            <div class="medidor__fila"><span>Confianza del veredicto</span><strong id="valConf">0%</strong></div>
+            <div class="barra"><div id="barConf" class="barra__relleno barra__relleno--conf"></div></div>
+          </div>
+
+          <div id="avisos"></div>
+
+          <h3 class="subtitulo">Modelo de IA más probable</h3>
+          <div id="familias" class="familias"></div>
+          <p id="notaFamilia" class="tenue pequeno"></p>
+
+          <ul id="estadisticas" class="estadisticas"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== INFORME FORENSE DETALLADO ===================== -->
+    <section id="informe" class="informe" hidden aria-label="Informe forense">
+      <h2 class="informe__titulo">Informe forense</h2>
+
+      <article class="tarjeta">
+        <h3>Posible prompt utilizado</h3>
+        <blockquote id="prompt" class="prompt"></blockquote>
+        <p id="promptNota" class="tenue pequeno"></p>
+      </article>
+
+      <article class="tarjeta">
+        <h3>Cómo se tomó la decisión</h3>
+        <ul id="evidencias" class="evidencias"></ul>
+      </article>
+
+      <article class="tarjeta">
+        <h3>Mapa de oraciones</h3>
+        <p class="tenue pequeno">Violeta intenso = patrón de IA · Verde = patrón humano · Sin color = neutro. Tocá una oración para ver su puntaje.</p>
+        <div id="mapa" class="mapa"></div>
+      </article>
+
+      <div class="rejilla">
+        <article class="tarjeta">
+          <h3>Rasgos estilométricos</h3>
+          <div id="rasgos" class="rasgos"></div>
+        </article>
+        <article class="tarjeta">
+          <h3>N-gramas decisivos</h3>
+          <h4 class="mini">Empujan hacia IA</h4>
+          <div id="ngIA" class="chips"></div>
+          <h4 class="mini">Empujan hacia humano</h4>
+          <div id="ngHum" class="chips"></div>
+          <h4 class="mini">Marcadores discursivos conocidos <span class="tenue">(informativos, no suman puntaje)</span></h4>
+          <div id="marcadores" class="chips"></div>
+        </article>
+      </div>
+
+      <article class="tarjeta">
+        <h3>Proceso realizado</h3>
+        <ol id="proceso" class="proceso"></ol>
+      </article>
+
+      <article class="tarjeta">
+        <h3>Calibración y fiabilidad medida</h3>
+        <div id="calibracion" class="calibracion"></div>
+      </article>
+    </section>
+  </main>
+
+  <footer class="pie contenedor">
+    <p><strong>VAT</strong> · Motor forense local: n-gramas + estilometría + regresión logística calibrada, entrenada con ~151.000 textos reales (COLING 2025 MGT con GPT-4o/Llama 3/Gemma/Mixtral, RAID con IA parafraseada, IberAuTexTification, AuTexTification, corpus paralelo GPT-4/Claude/Llama, arXiv vs Gemini, TextSight 2026…).</p>
+    <p class="tenue">Ningún detector es infalible. Usá el resultado como evidencia, no como sentencia: VAT prioriza no acusar falsamente.</p>
+  </footer>
+
+  <!-- Orden de scripts: modelo → motor → interfaz. Si se invirtiera, app.js intentaría usar MotorVAT o VAT_MODELO antes de que existan. -->
+  <script src="modelo/vat-modelo.js" defer></script>
+  <script src="assets/js/motor-vat.js" defer></script>
+  <script src="assets/js/app.js" defer></script>
+</body>
+</html>

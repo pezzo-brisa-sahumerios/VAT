@@ -1,0 +1,11 @@
+{
+  "name": "VAT · Detector Forense de Texto IA",
+  "short_name": "VAT",
+  "description": "Detector de texto generado por IA, 100% local y sin APIs.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f0620",
+  "theme_color": "#1a0b2e",
+  "lang": "es",
+  "icons": [{ "src": "assets/img/icono.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

@@ -1,0 +1,14 @@
+# VAT · Seguridad para Apache.
+# Bloquea el acceso web directo a código y datos internos: sin estas reglas,
+# alguien podría descargar config.php como texto (si PHP fallara) o los scripts de entrenamiento.
+Options -Indexes
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^(src|config|entrenamiento|docs)(/|$) - [F,L]
+</IfModule>
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set Referrer-Policy "no-referrer"
+  Header set X-Frame-Options "DENY"
+</IfModule>
+AddType application/manifest+json .webmanifest

@@ -1,0 +1,10 @@
+const M = JSON.parse(require('fs').readFileSync('/home/ubuntu/VAT-Detector/modelo/vat-modelo.json','utf8'));
+const V = require('/home/ubuntu/VAT-Detector/assets/js/motor-vat.js');
+const P = JSON.parse(require('fs').readFileSync(process.argv[2]||'parity.json','utf8'));
+let maxp=0, maxf=0, maxd=0, bad=0;
+P.forEach((s,i)=>{ const t=V.normalizar(s.text); const r=V.puntuar(t,M); const p=V.calibrar(r.z,M.platt); const f=V.softmax(r.zf);
+  const dp=Math.abs(p-s.p); maxp=Math.max(maxp,dp); f.forEach((x,k)=>maxf=Math.max(maxf,Math.abs(x-s.f[k])));
+  M.densos.nombres.forEach((n,j)=>{const d=Math.abs(r.dens.valores[n]-s.d[j]); if(d>1e-9 && d>maxd){maxd=d; if(d>1e-6) console.log('dense diff',i,n,r.dens.valores[n],s.d[j]);}});
+  if(dp>1e-6) bad++; });
+console.log('max|dp|',maxp,'max|df|',maxf,'max dense',maxd,'bad',bad,'/',P.length);
+const a=V.analizar(P[0].text,M); console.log(JSON.stringify(a).length, a.veredicto, a.prompt_estimado.texto, a.tiempo_ms+'ms');
